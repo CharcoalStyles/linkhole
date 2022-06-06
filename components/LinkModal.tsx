@@ -9,10 +9,12 @@ import {
   Grid,
   Modal,
   TextField,
+  Typography,
 } from "@mui/material";
 import { Link } from "@prisma/client";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { colours } from "../src/theme";
 
 type LinkModalProps = {
   link?: Link;
@@ -26,9 +28,6 @@ const style = {
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: 400,
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
   p: 1,
 };
 
@@ -54,14 +53,28 @@ export const LinkModal = ({
     <Modal
       open={open}
       onClose={() => {
-        console.log({ link, title, url });
         if (processing) return;
         onClose();
       }}
     >
       <Box sx={style}>
+        <Box padding={2}>
+          <Typography
+            color="white"
+            variant="h3"
+            style={{
+              textShadow: `0.1em 0.1em 0.1em black`,
+            }}
+          >
+            New Link
+          </Typography>
+        </Box>
         <Box padding={1}>
           <TextField
+            variant="filled"
+            style={{ background: "white" }}
+            color="secondary"
+            fullWidth
             label="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -69,26 +82,39 @@ export const LinkModal = ({
         </Box>
         <Box padding={1}>
           <TextField
+            variant="filled"
+            style={{ background: "white" }}
+            color="secondary"
+            fullWidth
             label="Url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
           />
         </Box>
 
-        <Grid container justifyContent="flex-end">
-          <Grid item>
-            <Button onClick={onClose} disabled={processing}>
+        <Grid container justifyContent="flex-end" paddingTop={2}>
+          <Grid item paddingRight={1}>
+            <Button
+              variant="contained"
+              color="warning"
+              onClick={onClose}
+              disabled={processing}
+            >
               Cancel
             </Button>
           </Grid>
           <Grid item>
             <Button
+              variant="contained"
               disabled={processing || title === "" || url === ""}
               onClick={async () => {
                 setProcessing(true);
                 const data = link
                   ? await updateLink(link.id, title, url)
                   : await createLink(title, url);
+                setTitle("");
+                setUrl("");
+                setProcessing(false);
                 onClose();
                 onUpdate(data);
               }}

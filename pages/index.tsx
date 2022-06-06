@@ -11,7 +11,6 @@ import { LinksList } from "../components/LinksList";
 const Home: NextPage = () => {
   const [links, setLinks] = useState<LinkData[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  console.log({ links });
 
   useEffect(() => {
     axios.get<LinkData[]>("/api/link").then(({ data }) => setLinks(data));
@@ -28,7 +27,7 @@ const Home: NextPage = () => {
         onClose={() => setModalOpen(false)}
         onUpdate={(link) => {
           setModalOpen(false);
-          setLinks((prev) => [...prev, link]);
+          setLinks((prev) => [link, ...prev]);
         }}
       />
       <AppBar position="sticky" elevation={4}>
