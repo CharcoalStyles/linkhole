@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient, Link } from "@prisma/client";
+import { checkAuth } from "../check";
 
 const prisma = new PrismaClient();
 
@@ -9,6 +10,11 @@ export default async function handler(
 ) {
   const linkId = Number.parseInt(req.query.id as string);
 
+  if (!checkAuth(req, "WRITE")) {
+    res.status(401).json({});
+    return;
+  }
+
   switch (req.method) {
     case "PUT":
       const data: Link = req.body;
@@ -16,7 +22,7 @@ export default async function handler(
         where: { id: linkId },
         data,
       });
-      console.log({ linkId, data, link });
+      
       res.status(200).json(link);
       break;
     case "DELETE":
@@ -25,7 +31,7 @@ export default async function handler(
           id: linkId,
         },
       });
-      res.status(200);
+      res.status(200).json({});
       break;
   }
 }

@@ -13,7 +13,8 @@ import {
 } from "@mui/material";
 import { Link } from "@prisma/client";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../pages";
 import { colours } from "../src/theme";
 
 type LinkModalProps = {
@@ -37,6 +38,7 @@ export const LinkModal = ({
   onUpdate,
   open,
 }: LinkModalProps) => {
+  const { write } = useContext(AuthContext);
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
 
@@ -110,8 +112,8 @@ export const LinkModal = ({
               onClick={async () => {
                 setProcessing(true);
                 const data = link
-                  ? await updateLink(link.id, title, url)
-                  : await createLink(title, url);
+                  ? await updateLink(link.id, title, url, write)
+                  : await createLink(title, url, write);
                 setTitle("");
                 setUrl("");
                 setProcessing(false);
@@ -128,12 +130,33 @@ export const LinkModal = ({
   );
 };
 
-const createLink = async (title: string, url: string) => {
-  const { data } = await axios.post<Link>("/api/link", { title, url });
+const createLink = async (title: string, url: string, writeAuth: string) => {
+  const { data } = await axios.post<Link>(
+    "/api/link",
+    { title, url },
+    {
+      headers: {
+        Authorization: writeAuth,
+      },
+    }
+  );
   return data;
 };
 
-const updateLink = async (id: number, title: string, url: string) => {
-  const { data } = await axios.put<Link>(`/api/link/${id}`, { title, url });
+const updateLink = async (
+  id: number,
+  title: string,
+  url: string,
+  writeAuth: string
+) => {
+  const { data } = await axios.put<Link>(
+    `/api/link/${id}`,
+    { title, url },
+    {
+      headers: {
+        Authorization: writeAuth,
+      },
+    }
+  );
   return data;
 };

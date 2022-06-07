@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient, Link } from "@prisma/client";
+import { checkAuth } from "../check";
 
 type PostData = {
   title: string;
@@ -14,6 +15,10 @@ export default async function handler(
 ) {
   switch (req.method) {
     case "GET":
+      if (!checkAuth(req, "READ")) {
+        res.status(401).json({ error: "Unauthorized" });
+        break;
+      }
       const links = await prisma.link.findMany({
         orderBy: {
           createdAt: "desc",
@@ -25,6 +30,10 @@ export default async function handler(
       res.status(200).json(links);
       break;
     case "POST":
+      if (!checkAuth(req, "WRITE")) {
+        res.status(401).json({ error: "Unauthorized" });
+        break;
+      }
       const data: PostData = req.body;
       const link = await prisma.link.create({
         data,

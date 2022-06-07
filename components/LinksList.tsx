@@ -1,32 +1,39 @@
-import { Grid, IconButton, styled, Typography } from "@mui/material";
-import Link from "next/link";
-import { Link as LinkData } from "@prisma/client";
+import { Grid, IconButton, Typography } from "@mui/material";
+import { Link } from "@prisma/client";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { LinkModal } from "./LinkModal";
 import { format } from "date-fns";
 import { colours } from "../src/theme";
+import styled from "@emotion/styled";
+import { AuthContext } from "../pages";
 
 type LinksListProps = {
-  links: LinkData[];
-  updateLinks: (links: LinkData[]) => void;
+  links: Link[];
+  updateLinks: (links: Link[]) => void;
 };
 
-const LinkText = styled(Typography)(() => ({
+const LinkText = styled.a(() => ({
   color: colours.dark[1],
   transition: "color 0.2s ease-in-out",
+  textDecorationColor: colours.dark[1],
+
+  "&:visited": {
+    textDecorationColor: colours.dark[1],
+  },
 
   "&:hover": {
-    cursor: 'pointer',
+    cursor: "pointer",
     color: colours.light[1],
   },
 }));
 
 export const LinksList = ({ links, updateLinks }: LinksListProps) => {
+  const { write } = useContext(AuthContext);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingLink, setEditingLink] = useState<LinkData>();
+  const [editingLink, setEditingLink] = useState<Link>();
 
   return (
     <>
@@ -57,9 +64,9 @@ export const LinksList = ({ links, updateLinks }: LinksListProps) => {
               >
                 <Grid item>
                   <Grid container flexDirection="column">
-                    <Link href={link.url}>
-                      <LinkText variant="h3">{link.title}</LinkText>
-                    </Link>
+                    <LinkText href={link.url} target="_blank">
+                      <Typography variant="h3">{link.title}</Typography>
+                    </LinkText>
                     <Grid item>
                       <Typography variant="body1">{link.url}</Typography>
                     </Grid>
@@ -89,7 +96,11 @@ export const LinksList = ({ links, updateLinks }: LinksListProps) => {
                     color="error"
                     aria-label="delete"
                     onClick={async () => {
-                      await axios.delete(`/api/link/${link.id}`);
+                      await axios.delete(`/api/link/${link.id}`, {
+                        headers: {
+                          Authorization: write,
+                        },
+                      });
 
                       const newLinks = links.filter((l) => l.id !== link.id);
                       updateLinks(newLinks);
