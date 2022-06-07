@@ -6,11 +6,12 @@ type PostData = {
   url: string;
 };
 
+const prisma = new PrismaClient();
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Link | Link[] | { error: string }>
 ) {
-  const prisma = new PrismaClient();
   switch (req.method) {
     case "GET":
       const links = await prisma.link.findMany({

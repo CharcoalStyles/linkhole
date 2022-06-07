@@ -1,13 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient, Link } from "@prisma/client";
 
+const prisma = new PrismaClient();
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   const linkId = Number.parseInt(req.query.id as string);
 
-  const prisma = new PrismaClient();
   switch (req.method) {
     case "PUT":
       const data: Link = req.body;
