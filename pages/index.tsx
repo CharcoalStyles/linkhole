@@ -44,7 +44,7 @@ const Home: NextPage = () => {
         "/api/check",
         {},
         {
-          headers: { authorization: auth.read },
+          headers: { authorization: auth.write },
         }
       )
       .then((res) => setCanWrite(res.status === 200))
