@@ -1,4 +1,3 @@
-import { ConnectingAirportsOutlined } from "@mui/icons-material";
 import { AppBar, Toolbar, Grid, Typography, Button } from "@mui/material";
 import { Link as LinkData } from "@prisma/client";
 import axios from "axios";
