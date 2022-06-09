@@ -18,7 +18,6 @@ const fetcher = (url: string, readToken: string) =>
       },
     })
     .then((res) => {
-      console.log("swr", res.data);
       return res.data;
     });
 
@@ -38,9 +37,9 @@ const Home: NextPage = () => {
   const [setAuthModalOpen, setSetAuthModalOpen] = useState(false);
   const [canRead, setCanRead] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
-  const { data, error, mutate } = useSWR<LinkData[]>(
+  const { data, mutate } = useSWR<LinkData[]>(
     ["/api/link", auth.read],
-    fetcher, {}
+    fetcher
   );
 
   useEffect(() => {
