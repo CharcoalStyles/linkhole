@@ -38,7 +38,7 @@ const Home: NextPage = () => {
   const [setAuthModalOpen, setSetAuthModalOpen] = useState(false);
   const [canRead, setCanRead] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
-  const { data, _, mutate } = useSWR<LinkData[]>(
+  const { data, error, mutate } = useSWR<LinkData[]>(
     ["/api/link", auth.read],
     fetcher, {}
   );
