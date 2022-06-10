@@ -4,10 +4,14 @@ import axios from "axios";
 import type { NextPage } from "next";
 import Head from "next/head";
 import { createContext, useEffect, useState } from "react";
+import { Alert } from "@mui/material";
+import { Snackbar } from "@mui/material";
 import { AuthModal } from "../components/AuthModal";
 import { LinkModal } from "../components/LinkModal";
 import { LinksList } from "../components/LinksList";
+
 import useSWR from "swr";
+import { useRouter } from "next/router";
 
 const fetcher = (url: string, readToken: string) =>
   axios
@@ -31,15 +35,43 @@ export const AuthContext = createContext<Auth>({
 });
 
 const Home: NextPage = () => {
+  const { query } = useRouter();
+
   const [auth, setAuth] = useState<Auth>({ read: "", write: "" });
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [setAuthModalOpen, setSetAuthModalOpen] = useState(false);
+
   const [canRead, setCanRead] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
+  const [showCantRead, setShowCantRead] = useState(false);
+  const [showCantWrite, setShowCantWrite] = useState(false);
+
   const { data, mutate } = useSWR<LinkData[]>(
     ["/api/link", auth.read],
     fetcher
   );
+
+  const [shareTitle, setShareTitle] = useState<string>();
+  const [shareUrl, setShareUrl] = useState<string>();
+
+  useEffect(() => {
+    const readPassword = localStorage.getItem("readPassword");
+    const writePassword = localStorage.getItem("writePassword");
+    setAuth({
+      read: readPassword ? readPassword : "",
+      write: writePassword ? writePassword : "",
+    });
+  }, []);
+
+  useEffect(() => {
+    if (canRead) {
+      mutate();
+    }
+    setShowCantRead(!canRead);
+  }, [canRead]);
+  useEffect(() => {
+    setShowCantWrite(!canWrite);
+  }, [canWrite]);
 
   useEffect(() => {
     axios
@@ -48,10 +80,16 @@ const Home: NextPage = () => {
           authorization: auth.read,
         },
       })
-      .then((res) => setCanRead(res.status === 200))
+      .then((res) => {
+        if (res.status === 200) {
+          setCanRead(true);
+          localStorage.setItem("readPassword", auth.read);
+        } else {
+          setCanRead(false);
+        }
+      })
       .catch(() => {
         setCanRead(false);
-        mutate();
       });
     axios
       .post(
@@ -61,26 +99,53 @@ const Home: NextPage = () => {
           headers: { authorization: auth.write },
         }
       )
-      .then((res) => setCanWrite(res.status === 200))
-      .catch(() => setCanRead(false));
+      .then((res) => {
+        if (res.status === 200) {
+          setCanWrite(true);
+          localStorage.setItem("writePassword", auth.write);
+        } else {
+          setCanWrite(false);
+        }
+      })
+      .catch(() => {
+        setCanWrite(false);
+        setShowCantWrite(true);
+      });
   }, [auth]);
 
   useEffect(() => {
-    if (canRead) {
-      mutate();
+    if (!canWrite) {
+      setShowCantWrite(true);
+      return;
     }
-  }, [canRead]);
+    if (query["url"] || query["title"]) {
+      setShareTitle(
+        Array.isArray(query["title"]) ? query["title"][0] : query["title"]
+      );
+      setShareUrl(Array.isArray(query["url"]) ? query["url"][0] : query["url"]);
+      setAddModalOpen(true);
+    }
+  }, [query]);
 
   return (
     <>
       <Head>
         <title>Linkhole</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/icons/icon-96x96.png" />
       </Head>
       <AuthContext.Provider value={auth}>
         <LinkModal
+          link={
+            shareTitle && shareUrl
+              ? { title: shareTitle, url: shareUrl }
+              : undefined
+          }
           open={addModalOpen}
-          onClose={() => setAddModalOpen(false)}
+          onClose={() => {
+            setShareTitle("");
+            setShareUrl("");
+            setAddModalOpen(false);
+          }}
           onUpdate={(link) => {
             setAddModalOpen(false);
             mutate([link, ...(data || [])]);
@@ -126,9 +191,33 @@ const Home: NextPage = () => {
       </AppBar>
       <AuthContext.Provider value={auth}>
         {data && (
-          <LinksList links={data} updateLinks={(links) => mutate(links)} />
+          <LinksList
+            canWrite={canWrite}
+            links={data}
+            updateLinks={(links) => mutate(links)}
+          />
         )}
       </AuthContext.Provider>
+
+      <Snackbar
+        open={showCantRead}
+        autoHideDuration={6000}
+        onClose={() => {
+          setShowCantRead(false);
+        }}
+      >
+        <Alert severity="error">Read password not set or is incorrect</Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={showCantWrite}
+        autoHideDuration={6000}
+        onClose={() => {
+          setShowCantWrite(false);
+        }}
+      >
+        <Alert severity="warning">Write password not set or is incorrect</Alert>
+      </Snackbar>
     </>
   );
 };
