@@ -55,16 +55,41 @@ const Home: NextPage = () => {
   const [shareUrl, setShareUrl] = useState<string>();
 
   useEffect(() => {
+    const readPassword = localStorage.getItem("readPassword");
+    const writePassword = localStorage.getItem("writePassword");
+    setAuth({
+      read: readPassword ? readPassword : "",
+      write: writePassword ? writePassword : "",
+    });
+  }, []);
+
+  useEffect(() => {
+    if (canRead) {
+      mutate();
+    }
+    setShowCantRead(!canRead);
+  }, [canRead]);
+  useEffect(() => {
+    setShowCantWrite(!canWrite);
+  }, [canWrite]);
+
+  useEffect(() => {
     axios
       .get("/api/check", {
         headers: {
           authorization: auth.read,
         },
       })
-      .then((res) => setCanRead(res.status === 200))
+      .then((res) => {
+        if (res.status === 200) {
+          setCanRead(true);
+          localStorage.setItem("readPassword", auth.read);
+        } else {
+          setCanRead(false);
+        }
+      })
       .catch(() => {
         setCanRead(false);
-        setShowCantRead(true);
       });
     axios
       .post(
@@ -74,18 +99,19 @@ const Home: NextPage = () => {
           headers: { authorization: auth.write },
         }
       )
-      .then((res) => setCanWrite(res.status === 200))
+      .then((res) => {
+        if (res.status === 200) {
+          setCanWrite(true);
+          localStorage.setItem("writePassword", auth.write);
+        } else {
+          setCanWrite(false);
+        }
+      })
       .catch(() => {
         setCanWrite(false);
         setShowCantWrite(true);
       });
   }, [auth]);
-
-  useEffect(() => {
-    if (canRead) {
-      mutate();
-    }
-  }, [canRead]);
 
   useEffect(() => {
     if (!canWrite) {
