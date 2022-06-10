@@ -4,6 +4,8 @@ import axios from "axios";
 import type { NextPage } from "next";
 import Head from "next/head";
 import { createContext, useEffect, useState } from "react";
+import { Alert } from "@mui/material";
+import { Snackbar } from "@mui/material";
 import { AuthModal } from "../components/AuthModal";
 import { LinkModal } from "../components/LinkModal";
 import { LinksList } from "../components/LinksList";
@@ -38,8 +40,12 @@ const Home: NextPage = () => {
   const [auth, setAuth] = useState<Auth>({ read: "", write: "" });
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [setAuthModalOpen, setSetAuthModalOpen] = useState(false);
+
   const [canRead, setCanRead] = useState(false);
   const [canWrite, setCanWrite] = useState(false);
+  const [showCantRead, setShowCantRead] = useState(false);
+  const [showCantWrite, setShowCantWrite] = useState(false);
+
   const { data, mutate } = useSWR<LinkData[]>(
     ["/api/link", auth.read],
     fetcher
@@ -58,7 +64,7 @@ const Home: NextPage = () => {
       .then((res) => setCanRead(res.status === 200))
       .catch(() => {
         setCanRead(false);
-        mutate();
+        setShowCantRead(true);
       });
     axios
       .post(
@@ -69,7 +75,10 @@ const Home: NextPage = () => {
         }
       )
       .then((res) => setCanWrite(res.status === 200))
-      .catch(() => setCanRead(false));
+      .catch(() => {
+        setCanWrite(false);
+        setShowCantWrite(true);
+      });
   }, [auth]);
 
   useEffect(() => {
@@ -79,9 +88,10 @@ const Home: NextPage = () => {
   }, [canRead]);
 
   useEffect(() => {
-    // if (!canWrite) {
-    //   return;
-    // }
+    if (!canWrite) {
+      setShowCantWrite(true);
+      return;
+    }
     if (query["url"] || query["title"]) {
       setShareTitle(
         Array.isArray(query["title"]) ? query["title"][0] : query["title"]
@@ -162,6 +172,26 @@ const Home: NextPage = () => {
           />
         )}
       </AuthContext.Provider>
+
+      <Snackbar
+        open={showCantRead}
+        autoHideDuration={6000}
+        onClose={() => {
+          setShowCantRead(false);
+        }}
+      >
+        <Alert severity="error">Read password not set or is incorrect</Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={showCantWrite}
+        autoHideDuration={6000}
+        onClose={() => {
+          setShowCantWrite(false);
+        }}
+      >
+        <Alert severity="warning">Write password not set or is incorrect</Alert>
+      </Snackbar>
     </>
   );
 };
