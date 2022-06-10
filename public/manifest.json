@@ -45,9 +45,17 @@
       "purpose": "maskable"
     }
   ],
+  "share_target": {
+    "action": "/api/share",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "start_url": "/",
-  "background_color": "#FFFFFF",
+  "background_color": "#85DCB0",
   "display": "standalone",
   "scope": "/",
-  "theme_color": "#000000"
+  "theme_color": "#85DCB0"
 }

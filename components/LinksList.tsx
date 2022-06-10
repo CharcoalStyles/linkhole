@@ -13,6 +13,7 @@ import { AuthContext } from "../pages";
 type LinksListProps = {
   links: Link[];
   updateLinks: (links: Link[]) => void;
+  canWrite: boolean;
 };
 
 const LinkText = styled.a(() => ({
@@ -30,7 +31,7 @@ const LinkText = styled.a(() => ({
   },
 }));
 
-export const LinksList = ({ links, updateLinks }: LinksListProps) => {
+export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
   const { write } = useContext(AuthContext);
   const [isEditing, setIsEditing] = useState(false);
   const [editingLink, setEditingLink] = useState<Link>();
@@ -82,32 +83,38 @@ export const LinksList = ({ links, updateLinks }: LinksListProps) => {
                 </Grid>
 
                 <Grid item>
-                  <IconButton
-                    size="large"
-                    onClick={() => {
-                      setEditingLink(link);
-                      setIsEditing(true);
-                    }}
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton
-                    size="large"
-                    color="error"
-                    aria-label="delete"
-                    onClick={async () => {
-                      await axios.delete(`/api/link/${link.id}`, {
-                        headers: {
-                          Authorization: write,
-                        },
-                      });
+                  {canWrite && (
+                    <>
+                      <IconButton
+                        size="large"
+                        onClick={() => {
+                          setEditingLink(link);
+                          setIsEditing(true);
+                        }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="large"
+                        color="error"
+                        aria-label="delete"
+                        onClick={async () => {
+                          await axios.delete(`/api/link/${link.id}`, {
+                            headers: {
+                              Authorization: write,
+                            },
+                          });
 
-                      const newLinks = links.filter((l) => l.id !== link.id);
-                      updateLinks(newLinks);
-                    }}
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                          const newLinks = links.filter(
+                            (l) => l.id !== link.id
+                          );
+                          updateLinks(newLinks);
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </>
+                  )}
                 </Grid>
               </Grid>
             </Grid>

@@ -7,7 +7,9 @@ import { createContext, useEffect, useState } from "react";
 import { AuthModal } from "../components/AuthModal";
 import { LinkModal } from "../components/LinkModal";
 import { LinksList } from "../components/LinksList";
+
 import useSWR from "swr";
+import { useRouter } from "next/router";
 
 const fetcher = (url: string, readToken: string) =>
   axios
@@ -31,6 +33,8 @@ export const AuthContext = createContext<Auth>({
 });
 
 const Home: NextPage = () => {
+  const { query } = useRouter();
+
   const [auth, setAuth] = useState<Auth>({ read: "", write: "" });
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [setAuthModalOpen, setSetAuthModalOpen] = useState(false);
@@ -40,6 +44,9 @@ const Home: NextPage = () => {
     ["/api/link", auth.read],
     fetcher
   );
+
+  const [shareTitle, setShareTitle] = useState<string>();
+  const [shareUrl, setShareUrl] = useState<string>();
 
   useEffect(() => {
     axios
@@ -71,6 +78,19 @@ const Home: NextPage = () => {
     }
   }, [canRead]);
 
+  useEffect(() => {
+    // if (!canWrite) {
+    //   return;
+    // }
+    if (query["url"] || query["title"]) {
+      setShareTitle(
+        Array.isArray(query["title"]) ? query["title"][0] : query["title"]
+      );
+      setShareUrl(Array.isArray(query["url"]) ? query["url"][0] : query["url"]);
+      setAddModalOpen(true);
+    }
+  }, [query]);
+
   return (
     <>
       <Head>
@@ -79,8 +99,17 @@ const Home: NextPage = () => {
       </Head>
       <AuthContext.Provider value={auth}>
         <LinkModal
+          link={
+            shareTitle && shareUrl
+              ? { title: shareTitle, url: shareUrl }
+              : undefined
+          }
           open={addModalOpen}
-          onClose={() => setAddModalOpen(false)}
+          onClose={() => {
+            setShareTitle("");
+            setShareUrl("");
+            setAddModalOpen(false);
+          }}
           onUpdate={(link) => {
             setAddModalOpen(false);
             mutate([link, ...(data || [])]);
@@ -126,7 +155,11 @@ const Home: NextPage = () => {
       </AppBar>
       <AuthContext.Provider value={auth}>
         {data && (
-          <LinksList links={data} updateLinks={(links) => mutate(links)} />
+          <LinksList
+            canWrite={canWrite}
+            links={data}
+            updateLinks={(links) => mutate(links)}
+          />
         )}
       </AuthContext.Provider>
     </>

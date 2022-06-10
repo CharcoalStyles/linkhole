@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "generate": "npx prisma generate",
+    "full-install" : "npx prisma full-install",
     "full-build": "npx prisma generate && next build"
   },
   "dependencies": {

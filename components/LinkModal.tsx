@@ -18,7 +18,7 @@ import { AuthContext } from "../pages";
 import { colours } from "../src/theme";
 
 type LinkModalProps = {
-  link?: Link;
+  link?: Pick<Link, "title" | "url"> & { id?: number };
   open: boolean;
   onClose: () => void;
   onUpdate: (link: Link) => void;
@@ -111,9 +111,10 @@ export const LinkModal = ({
               disabled={processing || title === "" || url === ""}
               onClick={async () => {
                 setProcessing(true);
-                const data = link
-                  ? await updateLink(link.id, title, url, write)
-                  : await createLink(title, url, write);
+                const data =
+                  link !== undefined && link.id
+                    ? await updateLink(link.id, title, url, write)
+                    : await createLink(title, url, write);
                 setTitle("");
                 setUrl("");
                 setProcessing(false);
