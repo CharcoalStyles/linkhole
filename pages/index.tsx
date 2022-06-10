@@ -132,6 +132,8 @@ const Home: NextPage = () => {
       <Head>
         <title>Linkhole</title>
         <link rel="icon" href="/icons/icon-96x96.png" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png"></link>
+        <meta name="theme-color" content="#85DCB0" />
       </Head>
       <AuthContext.Provider value={auth}>
         <LinkModal

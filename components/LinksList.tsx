@@ -74,12 +74,12 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
         />
       </Box>
       <Grid
-      sx={{
-        paddingX: {
-          xs: 0,
-          sm: 4,
-        }
-      }}
+        sx={{
+          paddingX: {
+            xs: 0,
+            sm: 4,
+          },
+        }}
         paddingTop={2}
         container
         flexDirection="column"
@@ -97,10 +97,26 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
                 <Grid item>
                   <Grid container flexDirection="column">
                     <LinkText href={link.url} target="_blank">
-                      <Typography variant="h3">{link.title}</Typography>
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontSize: {
+                            xs: "1.5rem",
+                            sm: "3rem",
+                          },
+                        }}
+                      >
+                        {link.title}
+                      </Typography>
                     </LinkText>
                     <Grid item>
-                      <Typography variant="body2">{link.url}</Typography>
+                      <Typography variant="body2" 
+                        sx={{
+                          fontSize: {
+                            xs: "0.75rem",
+                            sm: "0.95rem",
+                          },
+                        }}>{link.url}</Typography>
                     </Grid>
                     <Grid item>
                       <Typography variant="body2">
