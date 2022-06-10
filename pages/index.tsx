@@ -75,7 +75,7 @@ const Home: NextPage = () => {
     <>
       <Head>
         <title>Linkhole</title>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/icons/icon-96x96.png" />
       </Head>
       <AuthContext.Provider value={auth}>
         <LinkModal

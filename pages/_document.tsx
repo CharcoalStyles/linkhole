@@ -5,6 +5,7 @@ export default function Document() {
   return (
     <Html>
       <Head>
+        <link rel="manifest" href="/manifest.json" />
         <link
           href="https://api.fonts.coollabs.io/css2?family=Didact+Gothic&family=Patua+One&display=swap"
           rel="stylesheet"
