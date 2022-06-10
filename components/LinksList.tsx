@@ -1,9 +1,9 @@
-import { Grid, IconButton, Typography } from "@mui/material";
+import { Box, Grid, IconButton, TextField, Typography } from "@mui/material";
 import { Link } from "@prisma/client";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { LinkModal } from "./LinkModal";
 import { format } from "date-fns";
 import { colours } from "../src/theme";
@@ -36,6 +36,23 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingLink, setEditingLink] = useState<Link>();
 
+  const [search, setSearch] = useState<string>("");
+  const [filteredLinks, setFilteredLinks] = useState<Link[]>(links);
+
+  useEffect(() => {
+    if (search !== "") {
+      setFilteredLinks(
+        links.filter(
+          (link) =>
+            link.title.toLowerCase().includes(search.toLowerCase()) ||
+            link.url.toLowerCase().includes(search.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredLinks(links);
+    }
+  }, [search, links]);
+
   return (
     <>
       <LinkModal
@@ -47,6 +64,15 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
           updateLinks(links.map((l) => (l.id === link.id ? link : l)));
         }}
       />
+      <Box paddingY={2} paddingX={4}>
+        <TextField
+          fullWidth
+          label="Search"
+          variant="outlined"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </Box>
       <Grid
         paddingX={4}
         paddingTop={2}
@@ -54,7 +80,7 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
         flexDirection="column"
         justifyContent="start"
       >
-        {links.map((link) => {
+        {filteredLinks.map((link) => {
           return (
             <Grid item key={link.id} borderBottom={2} paddingBottom={1}>
               <Grid
