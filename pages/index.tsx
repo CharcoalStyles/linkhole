@@ -103,6 +103,16 @@ const Home: NextPage = () => {
         if (res.status === 200) {
           setCanWrite(true);
           localStorage.setItem("writePassword", auth.write);
+
+          if (query["url"] || query["title"]) {
+            setShareTitle(
+              Array.isArray(query["title"]) ? query["title"][0] : query["title"]
+            );
+            setShareUrl(
+              Array.isArray(query["url"]) ? query["url"][0] : query["url"]
+            );
+            setAddModalOpen(true);
+          }
         } else {
           setCanWrite(false);
         }
@@ -112,21 +122,6 @@ const Home: NextPage = () => {
         setShowCantWrite(true);
       });
   }, [auth]);
-
-  useEffect(() => {
-    console.log({ query });
-    if (!canWrite) {
-      setShowCantWrite(true);
-      return;
-    }
-    if (query["url"] || query["title"]) {
-      setShareTitle(
-        Array.isArray(query["title"]) ? query["title"][0] : query["title"]
-      );
-      setShareUrl(Array.isArray(query["url"]) ? query["url"][0] : query["url"]);
-      setAddModalOpen(true);
-    }
-  }, [query]);
 
   return (
     <>
