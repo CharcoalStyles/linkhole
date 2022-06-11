@@ -114,6 +114,7 @@ const Home: NextPage = () => {
   }, [auth]);
 
   useEffect(() => {
+    console.log({ query });
     if (!canWrite) {
       setShowCantWrite(true);
       return;
