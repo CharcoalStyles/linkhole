@@ -1,4 +1,4 @@
-import { AppBar, Toolbar, Grid, Typography, Button } from "@mui/material";
+import { AppBar, Toolbar, Grid, Typography, Button, Box } from "@mui/material";
 import { Link as LinkData } from "@prisma/client";
 import axios from "axios";
 import type { NextPage } from "next";
@@ -118,11 +118,19 @@ const Home: NextPage = () => {
       setShowCantWrite(true);
       return;
     }
-    if (query["url"] || query["title"]) {
+    if (query["url"] || query["title"] || query["text"]) {
       setShareTitle(
         Array.isArray(query["title"]) ? query["title"][0] : query["title"]
       );
-      setShareUrl(Array.isArray(query["url"]) ? query["url"][0] : query["url"]);
+      if (query["url"]) {
+        setShareUrl(
+          Array.isArray(query["url"]) ? query["url"][0] : query["url"]
+        );
+      } else if (query["text"]) {
+        setShareUrl(
+          Array.isArray(query["text"]) ? query["text"][0] : query["text"]
+        );
+      }
       setAddModalOpen(true);
     }
   }, [query]);
@@ -153,6 +161,15 @@ const Home: NextPage = () => {
             mutate([link, ...(data || [])]);
           }}
         />
+        {addModalOpen && (
+          <Box color="Menu">
+            {Object.entries(query).map((v) => (
+              <Typography color="darkblue" paddingLeft={2}>
+                {v[0]} = {v[1]}
+              </Typography>
+            ))}
+          </Box>
+        )}
       </AuthContext.Provider>
       <AuthModal
         open={setAuthModalOpen}
