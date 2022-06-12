@@ -161,15 +161,6 @@ const Home: NextPage = () => {
             mutate([link, ...(data || [])]);
           }}
         />
-        {addModalOpen && (
-          <Box color="Menu">
-            {Object.entries(query).map((v) => (
-              <Typography key={v[0]} color="darkblue" paddingLeft={2}>
-                {v[0]} = {v[1]}
-              </Typography>
-            ))}
-          </Box>
-        )}
       </AuthContext.Provider>
       <AuthModal
         open={setAuthModalOpen}
