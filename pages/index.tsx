@@ -122,11 +122,11 @@ const Home: NextPage = () => {
       setShareTitle(
         Array.isArray(query["title"]) ? query["title"][0] : query["title"]
       );
-      if (query["url"] && query["url"] ?== "") {
+      if (query["url"] && query["url"] !== "") {
         setShareUrl(
           Array.isArray(query["url"]) ? query["url"][0] : query["url"]
         );
-      } else if (query["text"] && query["text"] ?== "") {
+      } else if (query["text"] && query["text"] !== "") {
         setShareUrl(
           Array.isArray(query["text"]) ? query["text"][0] : query["text"]
         );
