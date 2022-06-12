@@ -164,7 +164,7 @@ const Home: NextPage = () => {
         {addModalOpen && (
           <Box color="Menu">
             {Object.entries(query).map((v) => (
-              <Typography color="darkblue" paddingLeft={2}>
+              <Typography key={v[0]} color="darkblue" paddingLeft={2}>
                 {v[0]} = {v[1]}
               </Typography>
             ))}
