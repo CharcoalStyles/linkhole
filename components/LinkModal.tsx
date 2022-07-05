@@ -1,35 +1,25 @@
-import styled from "@emotion/styled";
-import {
-  Box,
-  BoxProps,
-  Button,
-  FormControl,
-  FormGroup,
-  FormLabel,
-  Grid,
-  Modal,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { Link } from "@prisma/client";
+import { Box, Button, Grid, Modal, TextField, Typography } from "@mui/material";
+import { Link, Tag } from "@prisma/client";
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../pages";
-import { colours } from "../src/theme";
+import { LinkApiResponse } from "../src/apiTypes";
+import { TagList } from "./TagList";
 
 type LinkModalProps = {
-  link?: Pick<Link, "title" | "url"> & { id?: number };
+  link?: LinkApiResponse;
   open: boolean;
   onClose: () => void;
-  onUpdate: (link: Link) => void;
+  onUpdate: (link: LinkApiResponse) => void;
 };
-const style = {
+export const modalStyle = {
   position: "absolute" as "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: 400,
   p: 1,
+  backgroundColor: "rgba(0,0,0,0.3)",
 };
 
 export const LinkModal = ({
@@ -41,11 +31,13 @@ export const LinkModal = ({
   const { write } = useContext(AuthContext);
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
+  const [tags, setTags] = useState<Array<Tag>>([]);
 
   useEffect(() => {
     if (link) {
       setTitle(link.title);
       setUrl(link.url);
+      setTags(link.tags.map((t) => t.tag));
     }
   }, [link]);
 
@@ -59,7 +51,7 @@ export const LinkModal = ({
         onClose();
       }}
     >
-      <Box sx={style}>
+      <Box sx={modalStyle}>
         <Box padding={2}>
           <Typography
             color="white"
@@ -94,6 +86,13 @@ export const LinkModal = ({
           />
         </Box>
 
+        <Box padding={1}>
+          <TagList
+            onChange={(selectedTags) => setTags(selectedTags)}
+            initTags={tags}
+          />
+        </Box>
+
         <Grid container justifyContent="flex-end" paddingTop={2}>
           <Grid item paddingRight={1}>
             <Button
@@ -113,8 +112,14 @@ export const LinkModal = ({
                 setProcessing(true);
                 const data =
                   link !== undefined && link.id
-                    ? await updateLink(link.id, title, url, write)
-                    : await createLink(title, url, write);
+                    ? await updateLink(
+                        link.id,
+                        title,
+                        url,
+                        { new: tags, old: link.tags.map((t) => t.tag) },
+                        write
+                      )
+                    : await createLink(title, url, tags, write);
                 setTitle("");
                 setUrl("");
                 setProcessing(false);
@@ -131,10 +136,15 @@ export const LinkModal = ({
   );
 };
 
-const createLink = async (title: string, url: string, writeAuth: string) => {
-  const { data } = await axios.post<Link>(
+const createLink = async (
+  title: string,
+  url: string,
+  tags: Array<Tag>,
+  writeAuth: string
+) => {
+  const { data } = await axios.post<LinkApiResponse>(
     "/api/link",
-    { title, url },
+    { link: { title, url }, tags },
     {
       headers: {
         Authorization: writeAuth,
@@ -148,11 +158,15 @@ const updateLink = async (
   id: number,
   title: string,
   url: string,
+  tags: {
+    old: Array<Tag>;
+    new: Array<Tag>;
+  },
   writeAuth: string
 ) => {
-  const { data } = await axios.put<Link>(
+  const { data } = await axios.put<LinkApiResponse>(
     `/api/link/${id}`,
-    { title, url },
+    { link: { title, url }, tags },
     {
       headers: {
         Authorization: writeAuth,

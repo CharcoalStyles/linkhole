@@ -1,10 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { PrismaClient, Link } from "@prisma/client";
+import { PrismaClient, Link, Tag } from "@prisma/client";
 import { checkAuth } from "../check";
 
-type PostData = {
-  title: string;
-  url: string;
+export type PostPutData = {
+  link: {
+    title: string;
+    url: string;
+  };
+  tags: Array<string>;
 };
 
 const prisma = new PrismaClient();
@@ -24,7 +27,11 @@ export default async function handler(
           createdAt: "desc",
         },
         include: {
-          tags: true,
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
         },
       });
       res.status(200).json(links);
@@ -34,11 +41,45 @@ export default async function handler(
         res.status(401).json({ error: "Unauthorized" });
         break;
       }
-      const data: PostData = req.body;
-      const link = await prisma.link.create({
-        data,
+      const { link, tags }: PostPutData = req.body;
+
+      const newLink = await prisma.link.create({
+        data: link,
       });
-      res.status(200).json(link);
+
+      const tagIds = await Promise.all(
+        tags.map(async (t) => {
+          const tag = await prisma.tag.findFirst({
+            where: {
+              name: {
+                equals: t,
+              },
+            },
+          });
+          if (tag) return tag?.id;
+
+          return (
+            await prisma.tag.create({
+              data: {
+                name: t,
+              },
+            })
+          ).id;
+        })
+      );
+
+      await Promise.all(
+        tagIds.map((tid) => {
+          return prisma.tagOnLink.create({
+            data: {
+              linkId: newLink.id,
+              tagId: tid,
+            },
+          });
+        })
+      );
+
+      res.status(200).json(newLink);
       break;
   }
 }

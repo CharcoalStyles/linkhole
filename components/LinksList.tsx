@@ -9,10 +9,11 @@ import { format } from "date-fns";
 import { colours } from "../src/theme";
 import styled from "@emotion/styled";
 import { AuthContext } from "../pages";
+import { LinkApiResponse } from "../src/apiTypes";
 
 type LinksListProps = {
-  links: Link[];
-  updateLinks: (links: Link[]) => void;
+  links: LinkApiResponse[];
+  updateLinks: (links: LinkApiResponse[]) => void;
   canWrite: boolean;
 };
 
@@ -34,10 +35,10 @@ const LinkText = styled.a(() => ({
 export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
   const { write } = useContext(AuthContext);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingLink, setEditingLink] = useState<Link>();
+  const [editingLink, setEditingLink] = useState<LinkApiResponse>();
 
   const [search, setSearch] = useState<string>("");
-  const [filteredLinks, setFilteredLinks] = useState<Link[]>(links);
+  const [filteredLinks, setFilteredLinks] = useState<LinkApiResponse[]>(links);
 
   useEffect(() => {
     if (search !== "") {
@@ -110,18 +111,24 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
                       </Typography>
                     </LinkText>
                     <Grid item>
-                      <Typography variant="body2" 
+                      <Typography
+                        variant="body2"
                         sx={{
                           fontSize: {
                             xs: "0.75rem",
                             sm: "0.95rem",
                           },
-                        }}>{link.url}</Typography>
+                        }}
+                      >
+                        {link.url}
+                      </Typography>
                     </Grid>
                     <Grid item>
                       <Typography variant="body2">
                         {format(
-                          new Date(link.createdAt),
+                          link.createdAt
+                            ? new Date(link.createdAt)
+                            : new Date(),
                           "yyyy-MM-dd HH:mm:ss(xxx)"
                         )}
                       </Typography>
