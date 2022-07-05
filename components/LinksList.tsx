@@ -1,4 +1,12 @@
-import { Box, Grid, IconButton, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Chip,
+  Grid,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { Link } from "@prisma/client";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -137,38 +145,55 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
                 </Grid>
 
                 <Grid item>
-                  {canWrite && (
-                    <>
-                      <IconButton
-                        size="large"
-                        onClick={() => {
-                          setEditingLink(link);
-                          setIsEditing(true);
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="large"
-                        color="error"
-                        aria-label="delete"
-                        onClick={async () => {
-                          await axios.delete(`/api/link/${link.id}`, {
-                            headers: {
-                              Authorization: write,
-                            },
-                          });
+                  <Stack flexDirection="column" alignItems="end">
+                    {canWrite && (
+                      <Box>
+                        <IconButton
+                          size="large"
+                          onClick={() => {
+                            setEditingLink(link);
+                            setIsEditing(true);
+                          }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="large"
+                          color="error"
+                          aria-label="delete"
+                          onClick={async () => {
+                            await axios.delete(`/api/link/${link.id}`, {
+                              headers: {
+                                Authorization: write,
+                              },
+                            });
 
-                          const newLinks = links.filter(
-                            (l) => l.id !== link.id
-                          );
-                          updateLinks(newLinks);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </>
-                  )}
+                            const newLinks = links.filter(
+                              (l) => l.id !== link.id
+                            );
+                            updateLinks(newLinks);
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    )}
+
+                    <Stack
+                      paddingY={1}
+                      direction="row"
+                      spacing={1}
+                    >
+                      {link.tags.map(({ tag }) => (
+                        <Chip
+                          key={tag.id}
+                          label={tag.name}
+                          color="primary"
+                          variant="filled"
+                        />
+                      ))}
+                    </Stack>
+                  </Stack>
                 </Grid>
               </Grid>
             </Grid>

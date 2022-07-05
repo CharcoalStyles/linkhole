@@ -19,7 +19,7 @@ export const modalStyle = {
   transform: "translate(-50%, -50%)",
   width: 400,
   p: 1,
-  backgroundColor: "rgba(0,0,0,0.3)",
+  backgroundColor: "rgba(0,0,0,0.6)",
 };
 
 export const LinkModal = ({
