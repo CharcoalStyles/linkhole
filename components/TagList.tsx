@@ -10,6 +10,7 @@ import {
 import { Tag } from "@prisma/client";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { TagChip } from "./TagChip";
 
 type TagsListProps = {
   initTags: Tag[];
@@ -92,9 +93,9 @@ export const TagList = ({ initTags, onChange }: TagsListProps) => {
         const isSelected = selectedTags.map((t) => t.id).includes(tag.id);
 
         return (
-          <Chip
+          <TagChip
             key={tag.id}
-            label={tag.name}
+            tag={tag}
             color={isSelected ? "primary" : "secondary"}
             variant={isSelected ? "filled" : "outlined"}
             onClick={() => {

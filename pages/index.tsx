@@ -14,7 +14,7 @@ import useSWR from "swr";
 import { useRouter } from "next/router";
 import { LinkApiResponse } from "../src/apiTypes";
 
-const fetcher = (url: string, readToken: string) =>
+export const fetcher = (url: string, readToken: string) =>
   axios
     .get(url, {
       headers: {

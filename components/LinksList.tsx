@@ -1,13 +1,11 @@
 import {
   Box,
-  Chip,
   Grid,
   IconButton,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { Link } from "@prisma/client";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
@@ -16,8 +14,11 @@ import { LinkModal } from "./LinkModal";
 import { format } from "date-fns";
 import { colours } from "../src/theme";
 import styled from "@emotion/styled";
-import { AuthContext } from "../pages";
+import { AuthContext, fetcher } from "../pages";
 import { LinkApiResponse } from "../src/apiTypes";
+import { TagChip } from "./TagChip";
+import useSWR from "swr";
+import { Tag } from "@prisma/client";
 
 type LinksListProps = {
   links: LinkApiResponse[];
@@ -41,26 +42,34 @@ const LinkText = styled.a(() => ({
 }));
 
 export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
-  const { write } = useContext(AuthContext);
+  const { write, read } = useContext(AuthContext);
   const [isEditing, setIsEditing] = useState(false);
   const [editingLink, setEditingLink] = useState<LinkApiResponse>();
 
   const [search, setSearch] = useState<string>("");
+  const [filterTags, setFilterTags] = useState<Tag[]>([]);
   const [filteredLinks, setFilteredLinks] = useState<LinkApiResponse[]>(links);
 
+  const { data } = useSWR<Tag[]>(["/api/tag", read], fetcher);
+
   useEffect(() => {
+    let updatedLinks = [...links];
     if (search !== "") {
-      setFilteredLinks(
-        links.filter(
-          (link) =>
-            link.title.toLowerCase().includes(search.toLowerCase()) ||
-            link.url.toLowerCase().includes(search.toLowerCase())
+      updatedLinks = updatedLinks.filter(
+        (link) =>
+          link.title.toLowerCase().includes(search.toLowerCase()) ||
+          link.url.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    if (filterTags.length > 0) {
+      updatedLinks = updatedLinks.filter((link) =>
+        link.tags.some(({tag}) =>
+          filterTags.every((filterTag) => tag.id === filterTag.id)
         )
       );
-    } else {
-      setFilteredLinks(links);
     }
-  }, [search, links]);
+    setFilteredLinks(updatedLinks);
+  }, [search, filterTags, links]);
 
   return (
     <>
@@ -82,6 +91,32 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
           onChange={(e) => setSearch(e.target.value)}
         />
       </Box>
+      {data && (
+        <Box maxWidth="100%" overflow="auto" paddingX={4}>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            {data.map((tag) => {
+              const selected = filterTags.includes(tag);
+              return (
+                <TagChip
+                  key={tag.id}
+                  tag={tag}
+                  onClick={() => {
+                    setFilterTags((original) => {
+                      if (selected) {
+                        return original.filter((t) => t.id !== tag.id);
+                      } else {
+                        return [...original, tag];
+                      }
+                    });
+                  }}
+                  color={selected ? "primary" : "default"}
+                  variant={selected ? "filled" : "outlined"}
+                />
+              );
+            })}
+          </Stack>
+        </Box>
+      )}
       <Grid
         sx={{
           paddingX: {
@@ -179,15 +214,11 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
                       </Box>
                     )}
 
-                    <Stack
-                      paddingY={1}
-                      direction="row"
-                      spacing={1}
-                    >
+                    <Stack paddingY={1} direction="row" spacing={1}>
                       {link.tags.map(({ tag }) => (
-                        <Chip
+                        <TagChip
                           key={tag.id}
-                          label={tag.name}
+                          tag={tag}
                           color="primary"
                           variant="filled"
                         />

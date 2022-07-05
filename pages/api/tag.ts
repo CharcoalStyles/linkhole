@@ -8,24 +8,21 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<{}>
 ) {
-  const auth = checkAuth(req, "READ");
+  if (!checkAuth(req, "READ")) {
+    res.status(401).json({});
+    return;
+  }
+
   switch (req.method) {
     case "GET":
       const tags = await prisma.tag.findMany({
-        include: {
+        orderBy: {
           links: {
-            include: {
-              link: true,
-            }
+            _count: "desc",
           },
         },
       });
 
-      res
-        .status(200)
-        .json(
-          tags
-            .sort((a, b) => a.links.length - b.links.length)
-        );
+      res.status(200).json(tags);
   }
 }
