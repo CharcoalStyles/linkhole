@@ -67,19 +67,20 @@ export default async function handler(
       await Promise.all(
         updatedTagIds
           .filter((ut) => !oldTagIds.includes(ut))
-          .map((t) => prisma.tagOnLink.create({
+          .map((t) =>
+            prisma.tagOnLink.create({
               data: {
                 tagId: t,
                 linkId,
               },
-            });
+            })
           )
       );
 
       await Promise.all(
         oldTagIds
           .filter((ut) => !updatedTagIds.includes(ut))
-          .map((t) => 
+          .map((t) =>
             prisma.tagOnLink.delete({
               where: {
                 linkId_tagId: {
@@ -87,7 +88,7 @@ export default async function handler(
                   tagId: t,
                 },
               },
-            });
+            })
           )
       );
 
