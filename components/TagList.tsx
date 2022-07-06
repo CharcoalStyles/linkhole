@@ -24,8 +24,9 @@ export const TagList = ({ initTags, onChange }: TagsListProps) => {
   const [addingNewTag, setAddingNewTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   function finishAddingTag() {
-    setTags([...tags, { name: newTagName, id: -1 }]);
-    const newSelectedTags = [...selectedTags, { name: newTagName, id: -1 }];
+    const newTag = { name: newTagName, id: Math.random() * 10000 * -1 };
+    setTags([...tags, newTag]);
+    const newSelectedTags = [...selectedTags, newTag];
     setSelectedTags(newSelectedTags);
     setNewTagName("");
     setAddingNewTag(false);
@@ -50,8 +51,7 @@ export const TagList = ({ initTags, onChange }: TagsListProps) => {
       paddingY={1}
       direction="row"
       spacing={1}
-      width="100%"
-      overflow="auto"
+      flexWrap="wrap"
       justifyContent="flex-start"
     >
       {addingNewTag ? (

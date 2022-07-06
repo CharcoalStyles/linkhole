@@ -41,7 +41,7 @@ export default async function handler(
         tags: { old: Array<Tag>; new: Array<Tag> };
       } = req.body;
 
-      const realNewTags = tags.new.filter((t) => t.id === -1);
+      const realNewTags = tags.new.filter((t) => t.id < 0);
 
       await Promise.all(
         realNewTags.map((t) => {
@@ -58,9 +58,7 @@ export default async function handler(
         })
       );
 
-      const updatedTagIds = tags.new
-        .filter((t) => t.id !== -1)
-        .map((t) => t.id);
+      const updatedTagIds = tags.new.filter((t) => t.id > 0).map((t) => t.id);
 
       const oldTagIds = tags.old.map((t) => t.id);
 

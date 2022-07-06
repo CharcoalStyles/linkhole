@@ -17,7 +17,8 @@ export const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 400,
+  width: "75vw",
+  minWidth: "400px",
   p: 1,
   backgroundColor: "rgba(0,0,0,0.6)",
 };
@@ -63,42 +64,52 @@ export const LinkModal = ({
             New Link
           </Typography>
         </Box>
-        <Box padding={1}>
-          <TextField
-            variant="filled"
-            style={{ background: "white" }}
-            color="secondary"
-            fullWidth
-            label="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </Box>
-        <Box padding={1}>
-          <TextField
-            variant="filled"
-            style={{ background: "white" }}
-            color="secondary"
-            fullWidth
-            label="Url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-        </Box>
-
-        <Box padding={1}>
-          <TagList
-            onChange={(selectedTags) => setTags(selectedTags)}
-            initTags={tags}
-          />
-        </Box>
+        <Grid container flexDirection="row" flexWrap="nowrap">
+          <Grid item flexGrow={1}>
+            <Box padding={1}>
+              <TextField
+                variant="filled"
+                style={{ background: "white" }}
+                color="secondary"
+                fullWidth
+                label="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </Box>
+            <Box padding={1}>
+              <TextField
+                variant="filled"
+                style={{ background: "white" }}
+                color="secondary"
+                fullWidth
+                label="Url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+            </Box>
+          </Grid>
+          <Grid item style={{ width: "40%" }}>
+            <Box padding={1}>
+              <TagList
+                onChange={(selectedTags) => setTags(selectedTags)}
+                initTags={tags}
+              />
+            </Box>
+          </Grid>
+        </Grid>
 
         <Grid container justifyContent="flex-end" paddingTop={2}>
           <Grid item paddingRight={1}>
             <Button
               variant="contained"
               color="warning"
-              onClick={onClose}
+              onClick={() => {
+                setTitle("");
+                setUrl("");
+                setTags([]);
+                onClose();
+              }}
               disabled={processing}
             >
               Cancel
@@ -122,6 +133,7 @@ export const LinkModal = ({
                     : await createLink(title, url, tags, write);
                 setTitle("");
                 setUrl("");
+                setTags([]);
                 setProcessing(false);
                 onClose();
                 onUpdate(data);
