@@ -104,12 +104,7 @@ export const LinkModal = ({
             <Button
               variant="contained"
               color="warning"
-              onClick={() => {
-                setTitle("");
-                setUrl("");
-                setTags([]);
-                onClose();
-              }}
+              onClick={onClose}
               disabled={processing}
             >
               Cancel
@@ -133,7 +128,6 @@ export const LinkModal = ({
                     : await createLink(title, url, tags, write);
                 setTitle("");
                 setUrl("");
-                setTags([]);
                 setProcessing(false);
                 onClose();
                 onUpdate(data);
