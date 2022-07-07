@@ -63,9 +63,7 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
     }
     if (filterTags.length > 0) {
       updatedLinks = updatedLinks.filter((link) =>
-        link.tags.some(({tag}) =>
-          filterTags.every((filterTag) => tag.id === filterTag.id)
-        )
+        filterTags.every((ft) => link.tags.some(({ tag }) => tag.id === ft.id))
       );
     }
     setFilteredLinks(updatedLinks);
