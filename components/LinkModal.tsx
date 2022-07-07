@@ -40,7 +40,7 @@ export const LinkModal = ({
       setUrl(link.url);
       setTags(link.tags.map((t) => t.tag));
     }
-  }, [link]);
+  }, [link, open]);
 
   const [processing, setProcessing] = useState(false);
 
@@ -104,7 +104,12 @@ export const LinkModal = ({
             <Button
               variant="contained"
               color="warning"
-              onClick={onClose}
+              onClick={() => {
+                setTitle("");
+                setUrl("");
+                setTags([]);
+                onClose();
+              }}
               disabled={processing}
             >
               Cancel
@@ -128,6 +133,7 @@ export const LinkModal = ({
                     : await createLink(title, url, tags, write);
                 setTitle("");
                 setUrl("");
+                setTags([]);
                 setProcessing(false);
                 onClose();
                 onUpdate(data);
