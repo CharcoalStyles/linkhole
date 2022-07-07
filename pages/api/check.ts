@@ -7,7 +7,6 @@ export const checkAuth = (req: NextApiRequest, type: "READ" | "WRITE" | "") => {
 
   const auth = req.headers.authorization ? req.headers.authorization : "";
 
-  console.log(type, auth);
   const password = process.env[`${type}_PASSWORD`]
     ? process.env[`${type}_PASSWORD`]
     : "";

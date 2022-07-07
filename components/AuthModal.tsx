@@ -1,33 +1,12 @@
-import styled from "@emotion/styled";
-import {
-  Box,
-  BoxProps,
-  Button,
-  FormControl,
-  FormGroup,
-  FormLabel,
-  Grid,
-  Modal,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { Link } from "@prisma/client";
-import axios from "axios";
-import { useContext, useEffect, useState } from "react";
+import { Box, Button, Grid, Modal, TextField, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
 import { Auth, AuthContext } from "../pages";
+import { modalStyle } from "./LinkModal";
 type AuthModalProps = {
   auth: Auth;
   open: boolean;
   onClose: () => void;
   onUpdate: (newAuth: Auth) => void;
-};
-const style = {
-  position: "absolute" as "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 400,
-  p: 1,
 };
 
 export const AuthModal = ({
@@ -51,7 +30,7 @@ export const AuthModal = ({
         onClose();
       }}
     >
-      <Box sx={style}>
+      <Box sx={modalStyle}>
         <Box padding={2}>
           <Typography
             color="white"

@@ -1,35 +1,26 @@
-import styled from "@emotion/styled";
-import {
-  Box,
-  BoxProps,
-  Button,
-  FormControl,
-  FormGroup,
-  FormLabel,
-  Grid,
-  Modal,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { Link } from "@prisma/client";
+import { Box, Button, Grid, Modal, TextField, Typography } from "@mui/material";
+import { Link, Tag } from "@prisma/client";
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../pages";
-import { colours } from "../src/theme";
+import { LinkApiResponse } from "../src/apiTypes";
+import { TagList } from "./TagList";
 
 type LinkModalProps = {
-  link?: Pick<Link, "title" | "url"> & { id?: number };
+  link?: LinkApiResponse;
   open: boolean;
   onClose: () => void;
-  onUpdate: (link: Link) => void;
+  onUpdate: (link: LinkApiResponse) => void;
 };
-const style = {
+export const modalStyle = {
   position: "absolute" as "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 400,
+  width: "75vw",
+  minWidth: "400px",
   p: 1,
+  backgroundColor: "rgba(0,0,0,0.6)",
 };
 
 export const LinkModal = ({
@@ -41,13 +32,15 @@ export const LinkModal = ({
   const { write } = useContext(AuthContext);
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
+  const [tags, setTags] = useState<Array<Tag>>([]);
 
   useEffect(() => {
     if (link) {
       setTitle(link.title);
       setUrl(link.url);
+      setTags(link.tags.map((t) => t.tag));
     }
-  }, [link]);
+  }, [link, open]);
 
   const [processing, setProcessing] = useState(false);
 
@@ -59,7 +52,7 @@ export const LinkModal = ({
         onClose();
       }}
     >
-      <Box sx={style}>
+      <Box sx={modalStyle}>
         <Box padding={2}>
           <Typography
             color="white"
@@ -71,35 +64,52 @@ export const LinkModal = ({
             New Link
           </Typography>
         </Box>
-        <Box padding={1}>
-          <TextField
-            variant="filled"
-            style={{ background: "white" }}
-            color="secondary"
-            fullWidth
-            label="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </Box>
-        <Box padding={1}>
-          <TextField
-            variant="filled"
-            style={{ background: "white" }}
-            color="secondary"
-            fullWidth
-            label="Url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-        </Box>
+        <Grid container flexDirection="row" flexWrap="nowrap">
+          <Grid item flexGrow={1}>
+            <Box padding={1}>
+              <TextField
+                variant="filled"
+                style={{ background: "white" }}
+                color="secondary"
+                fullWidth
+                label="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </Box>
+            <Box padding={1}>
+              <TextField
+                variant="filled"
+                style={{ background: "white" }}
+                color="secondary"
+                fullWidth
+                label="Url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+            </Box>
+          </Grid>
+          <Grid item style={{ width: "40%" }}>
+            <Box padding={1}>
+              <TagList
+                onChange={(selectedTags) => setTags(selectedTags)}
+                initTags={tags}
+              />
+            </Box>
+          </Grid>
+        </Grid>
 
         <Grid container justifyContent="flex-end" paddingTop={2}>
           <Grid item paddingRight={1}>
             <Button
               variant="contained"
               color="warning"
-              onClick={onClose}
+              onClick={() => {
+                setTitle("");
+                setUrl("");
+                setTags([]);
+                onClose();
+              }}
               disabled={processing}
             >
               Cancel
@@ -113,10 +123,17 @@ export const LinkModal = ({
                 setProcessing(true);
                 const data =
                   link !== undefined && link.id
-                    ? await updateLink(link.id, title, url, write)
-                    : await createLink(title, url, write);
+                    ? await updateLink(
+                        link.id,
+                        title,
+                        url,
+                        { new: tags, old: link.tags.map((t) => t.tag) },
+                        write
+                      )
+                    : await createLink(title, url, tags, write);
                 setTitle("");
                 setUrl("");
+                setTags([]);
                 setProcessing(false);
                 onClose();
                 onUpdate(data);
@@ -131,10 +148,15 @@ export const LinkModal = ({
   );
 };
 
-const createLink = async (title: string, url: string, writeAuth: string) => {
-  const { data } = await axios.post<Link>(
+const createLink = async (
+  title: string,
+  url: string,
+  tags: Array<Tag>,
+  writeAuth: string
+) => {
+  const { data } = await axios.post<LinkApiResponse>(
     "/api/link",
-    { title, url },
+    { link: { title, url }, tags },
     {
       headers: {
         Authorization: writeAuth,
@@ -148,11 +170,15 @@ const updateLink = async (
   id: number,
   title: string,
   url: string,
+  tags: {
+    old: Array<Tag>;
+    new: Array<Tag>;
+  },
   writeAuth: string
 ) => {
-  const { data } = await axios.put<Link>(
+  const { data } = await axios.put<LinkApiResponse>(
     `/api/link/${id}`,
-    { title, url },
+    { link: { title, url }, tags },
     {
       headers: {
         Authorization: writeAuth,

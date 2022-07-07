@@ -12,8 +12,9 @@ import { LinksList } from "../components/LinksList";
 
 import useSWR from "swr";
 import { useRouter } from "next/router";
+import { LinkApiResponse } from "../src/apiTypes";
 
-const fetcher = (url: string, readToken: string) =>
+export const fetcher = (url: string, readToken: string) =>
   axios
     .get(url, {
       headers: {
@@ -46,7 +47,7 @@ const Home: NextPage = () => {
   const [showCantRead, setShowCantRead] = useState(false);
   const [showCantWrite, setShowCantWrite] = useState(false);
 
-  const { data, mutate } = useSWR<LinkData[]>(
+  const { data, mutate } = useSWR<LinkApiResponse[]>(
     ["/api/link", auth.read],
     fetcher
   );
@@ -67,6 +68,7 @@ const Home: NextPage = () => {
     if (canRead) {
       mutate();
     }
+    mutate;
     setShowCantRead(!canRead);
   }, [canRead]);
   useEffect(() => {
@@ -147,7 +149,7 @@ const Home: NextPage = () => {
         <LinkModal
           link={
             shareTitle && shareUrl
-              ? { title: shareTitle, url: shareUrl }
+              ? { title: shareTitle, url: shareUrl, tags: [] }
               : undefined
           }
           open={addModalOpen}

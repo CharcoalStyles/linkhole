@@ -1,7 +1,7 @@
 import { createTheme } from "@mui/material";
 
 export const colours = {
-  light: ["#E27D60", "#85DCB0", "#E8A87C", "#C38D9E", "#41B3A3"],
+  light: ["#E27D60", "#85DCB0", "#E8A87C", "#C38D9E", "#85B0DC"],
   dark: ["#5a2111", "#1a5b3b", "#643212", "#492732", "#163c37"],
 };
 
@@ -65,8 +65,8 @@ export const theme = createTheme({
       contrastText: "#111",
     },
     secondary: {
-      main: colours.dark[1],
-      contrastText: "#eee",
+      main: colours.light[4],
+      contrastText: "#111",
     },
   },
 });

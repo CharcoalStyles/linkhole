@@ -1,5 +1,11 @@
-import { Box, Grid, IconButton, TextField, Typography } from "@mui/material";
-import { Link } from "@prisma/client";
+import {
+  Box,
+  Grid,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
@@ -8,11 +14,15 @@ import { LinkModal } from "./LinkModal";
 import { format } from "date-fns";
 import { colours } from "../src/theme";
 import styled from "@emotion/styled";
-import { AuthContext } from "../pages";
+import { AuthContext, fetcher } from "../pages";
+import { LinkApiResponse } from "../src/apiTypes";
+import { TagChip } from "./TagChip";
+import useSWR from "swr";
+import { Tag } from "@prisma/client";
 
 type LinksListProps = {
-  links: Link[];
-  updateLinks: (links: Link[]) => void;
+  links: LinkApiResponse[];
+  updateLinks: (links: LinkApiResponse[]) => void;
   canWrite: boolean;
 };
 
@@ -32,26 +42,32 @@ const LinkText = styled.a(() => ({
 }));
 
 export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
-  const { write } = useContext(AuthContext);
+  const { write, read } = useContext(AuthContext);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingLink, setEditingLink] = useState<Link>();
+  const [editingLink, setEditingLink] = useState<LinkApiResponse>();
 
   const [search, setSearch] = useState<string>("");
-  const [filteredLinks, setFilteredLinks] = useState<Link[]>(links);
+  const [filterTags, setFilterTags] = useState<Tag[]>([]);
+  const [filteredLinks, setFilteredLinks] = useState<LinkApiResponse[]>(links);
+
+  const { data } = useSWR<Tag[]>(["/api/tag", read], fetcher);
 
   useEffect(() => {
+    let updatedLinks = [...links];
     if (search !== "") {
-      setFilteredLinks(
-        links.filter(
-          (link) =>
-            link.title.toLowerCase().includes(search.toLowerCase()) ||
-            link.url.toLowerCase().includes(search.toLowerCase())
-        )
+      updatedLinks = updatedLinks.filter(
+        (link) =>
+          link.title.toLowerCase().includes(search.toLowerCase()) ||
+          link.url.toLowerCase().includes(search.toLowerCase())
       );
-    } else {
-      setFilteredLinks(links);
     }
-  }, [search, links]);
+    if (filterTags.length > 0) {
+      updatedLinks = updatedLinks.filter((link) =>
+        filterTags.every((ft) => link.tags.some(({ tag }) => tag.id === ft.id))
+      );
+    }
+    setFilteredLinks(updatedLinks);
+  }, [search, filterTags, links]);
 
   return (
     <>
@@ -73,6 +89,32 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
           onChange={(e) => setSearch(e.target.value)}
         />
       </Box>
+      {data && (
+        <Box maxWidth="100%" overflow="auto" paddingX={4}>
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            {data.map((tag) => {
+              const selected = filterTags.includes(tag);
+              return (
+                <TagChip
+                  key={tag.id}
+                  tag={tag}
+                  onClick={() => {
+                    setFilterTags((original) => {
+                      if (selected) {
+                        return original.filter((t) => t.id !== tag.id);
+                      } else {
+                        return [...original, tag];
+                      }
+                    });
+                  }}
+                  color={selected ? "primary" : "default"}
+                  variant={selected ? "filled" : "outlined"}
+                />
+              );
+            })}
+          </Stack>
+        </Box>
+      )}
       <Grid
         sx={{
           paddingX: {
@@ -110,18 +152,24 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
                       </Typography>
                     </LinkText>
                     <Grid item>
-                      <Typography variant="body2" 
+                      <Typography
+                        variant="body2"
                         sx={{
                           fontSize: {
                             xs: "0.75rem",
                             sm: "0.95rem",
                           },
-                        }}>{link.url}</Typography>
+                        }}
+                      >
+                        {link.url}
+                      </Typography>
                     </Grid>
                     <Grid item>
                       <Typography variant="body2">
                         {format(
-                          new Date(link.createdAt),
+                          link.createdAt
+                            ? new Date(link.createdAt)
+                            : new Date(),
                           "yyyy-MM-dd HH:mm:ss(xxx)"
                         )}
                       </Typography>
@@ -130,38 +178,51 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
                 </Grid>
 
                 <Grid item>
-                  {canWrite && (
-                    <>
-                      <IconButton
-                        size="large"
-                        onClick={() => {
-                          setEditingLink(link);
-                          setIsEditing(true);
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        size="large"
-                        color="error"
-                        aria-label="delete"
-                        onClick={async () => {
-                          await axios.delete(`/api/link/${link.id}`, {
-                            headers: {
-                              Authorization: write,
-                            },
-                          });
+                  <Stack flexDirection="column" alignItems="end">
+                    {canWrite && (
+                      <Box>
+                        <IconButton
+                          size="large"
+                          onClick={() => {
+                            setEditingLink(link);
+                            setIsEditing(true);
+                          }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="large"
+                          color="error"
+                          aria-label="delete"
+                          onClick={async () => {
+                            await axios.delete(`/api/link/${link.id}`, {
+                              headers: {
+                                Authorization: write,
+                              },
+                            });
 
-                          const newLinks = links.filter(
-                            (l) => l.id !== link.id
-                          );
-                          updateLinks(newLinks);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </>
-                  )}
+                            const newLinks = links.filter(
+                              (l) => l.id !== link.id
+                            );
+                            updateLinks(newLinks);
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    )}
+
+                    <Stack paddingY={1} direction="row" spacing={1}>
+                      {link.tags.map(({ tag }) => (
+                        <TagChip
+                          key={tag.id}
+                          tag={tag}
+                          color="primary"
+                          variant="filled"
+                        />
+                      ))}
+                    </Stack>
+                  </Stack>
                 </Grid>
               </Grid>
             </Grid>
