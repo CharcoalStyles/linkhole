@@ -7,7 +7,7 @@ export type PostPutData = {
     title: string;
     url: string;
   };
-  tags: Array<string>;
+  tags: Array<Tag>;
 };
 
 const prisma = new PrismaClient();
@@ -52,7 +52,7 @@ export default async function handler(
           const tag = await prisma.tag.findFirst({
             where: {
               name: {
-                equals: t,
+                equals: t.name,
               },
             },
           });
@@ -61,7 +61,7 @@ export default async function handler(
           return (
             await prisma.tag.create({
               data: {
-                name: t,
+                name: t.name,
               },
             })
           ).id;
