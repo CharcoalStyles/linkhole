@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PrismaClient, Link, Tag } from "@prisma/client";
 import { checkAuth } from "../check";
+import { LinkApiResponse } from "../../../src/apiTypes";
 
 export type PostPutData = {
   link: {
@@ -14,7 +15,7 @@ const prisma = new PrismaClient();
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Link | Link[] | { error: string }>
+  res: NextApiResponse<LinkApiResponse | LinkApiResponse[] | { error: string }>
 ) {
   switch (req.method) {
     case "GET":
@@ -47,7 +48,7 @@ export default async function handler(
         data: link,
       });
 
-      const tagIds = await Promise.all(
+      const allTags = await Promise.all(
         tags.map(async (t) => {
           const tag = await prisma.tag.findFirst({
             where: {
@@ -56,30 +57,30 @@ export default async function handler(
               },
             },
           });
-          if (tag) return tag?.id;
+          if (tag) return tag;
 
-          return (
-            await prisma.tag.create({
-              data: {
-                name: t.name,
-              },
-            })
-          ).id;
-        })
-      );
-
-      await Promise.all(
-        tagIds.map((tid) => {
-          return prisma.tagOnLink.create({
+          return await prisma.tag.create({
             data: {
-              linkId: newLink.id,
-              tagId: tid,
+              name: t.name,
             },
           });
         })
       );
 
-      res.status(200).json(newLink);
+      await Promise.all(
+        tags.map(({ id }) => {
+          return prisma.tagOnLink.create({
+            data: {
+              linkId: newLink.id,
+              tagId: id,
+            },
+          });
+        })
+      );
+
+      res
+        .status(200)
+        .json({ ...newLink, tags: allTags.map((t) => ({ tag: t })) });
       break;
   }
 }
