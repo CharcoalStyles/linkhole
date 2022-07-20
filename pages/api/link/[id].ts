@@ -108,15 +108,15 @@ export default async function handler(
       res.status(200).json(newLink);
       break;
     case "DELETE":
-      await prisma.link.delete({
-        where: {
-          id: linkId,
-        },
-      });
-
       await prisma.tagOnLink.deleteMany({
         where: {
           linkId,
+        },
+      });
+
+      await prisma.link.delete({
+        where: {
+          id: linkId,
         },
       });
 
