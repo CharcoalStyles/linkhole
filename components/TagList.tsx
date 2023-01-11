@@ -24,7 +24,10 @@ export const TagList = ({ initTags, onChange }: TagsListProps) => {
   const [addingNewTag, setAddingNewTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   function finishAddingTag() {
-    const newTag = { name: newTagName, id: Math.random() * 10000 * -1 };
+    const newTag = {
+      name: newTagName,
+      id: Math.floor(Math.random() * 10000 * -1),
+    };
     setTags([...tags, newTag]);
     const newSelectedTags = [...selectedTags, newTag];
     setSelectedTags(newSelectedTags);

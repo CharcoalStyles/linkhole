@@ -67,8 +67,10 @@ export default async function handler(
         })
       );
 
+      console.log({ allTags })
+
       await Promise.all(
-        tags.map(({ id }) => {
+        allTags.map(({ id }) => {
           return prisma.tagOnLink.create({
             data: {
               linkId: newLink.id,

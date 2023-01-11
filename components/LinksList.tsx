@@ -142,6 +142,11 @@ export const LinksList = ({ canWrite, links, updateLinks }: LinksListProps) => {
                       <Typography
                         variant="h3"
                         sx={{
+                          wordWrap: "break-word",
+                          maxWidth: {
+                            xs: "98vw",
+                            sm: "90vw",
+                          },
                           fontSize: {
                             xs: "1.5rem",
                             sm: "3rem",
