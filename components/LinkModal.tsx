@@ -19,6 +19,7 @@ export const modalStyle = {
   transform: "translate(-50%, -50%)",
   width: "75vw",
   minWidth: "400px",
+  maxHeight: "90vh",
   p: 1,
   backgroundColor: "rgba(0,0,0,0.6)",
 };
@@ -88,59 +89,58 @@ export const LinkModal = ({
                 onChange={(e) => setUrl(e.target.value)}
               />
             </Box>
+            <Grid container justifyContent="flex-end" paddingTop={2}>
+              <Grid item paddingRight={1}>
+                <Button
+                  variant="contained"
+                  color="warning"
+                  onClick={() => {
+                    setTitle("");
+                    setUrl("");
+                    setTags([]);
+                    onClose();
+                  }}
+                  disabled={processing}
+                >
+                  Cancel
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button
+                  variant="contained"
+                  disabled={processing || title === "" || url === ""}
+                  onClick={async () => {
+                    setProcessing(true);
+                    const data =
+                      link !== undefined && link.id
+                        ? await updateLink(
+                            link.id,
+                            title,
+                            url,
+                            { new: tags, old: link.tags.map((t) => t.tag) },
+                            write
+                          )
+                        : await createLink(title, url, tags, write);
+                    setTitle("");
+                    setUrl("");
+                    setTags([]);
+                    setProcessing(false);
+                    onClose();
+                    onUpdate(data);
+                  }}
+                >
+                  Save
+                </Button>
+              </Grid>
+            </Grid>
           </Grid>
           <Grid item style={{ width: "40%" }}>
-            <Box padding={1}>
+            <Box padding={1} style={{ maxHeight: "60vh", overflowY: "scroll" }}>
               <TagList
                 onChange={(selectedTags) => setTags(selectedTags)}
                 initTags={tags}
               />
             </Box>
-          </Grid>
-        </Grid>
-
-        <Grid container justifyContent="flex-end" paddingTop={2}>
-          <Grid item paddingRight={1}>
-            <Button
-              variant="contained"
-              color="warning"
-              onClick={() => {
-                setTitle("");
-                setUrl("");
-                setTags([]);
-                onClose();
-              }}
-              disabled={processing}
-            >
-              Cancel
-            </Button>
-          </Grid>
-          <Grid item>
-            <Button
-              variant="contained"
-              disabled={processing || title === "" || url === ""}
-              onClick={async () => {
-                setProcessing(true);
-                const data =
-                  link !== undefined && link.id
-                    ? await updateLink(
-                        link.id,
-                        title,
-                        url,
-                        { new: tags, old: link.tags.map((t) => t.tag) },
-                        write
-                      )
-                    : await createLink(title, url, tags, write);
-                setTitle("");
-                setUrl("");
-                setTags([]);
-                setProcessing(false);
-                onClose();
-                onUpdate(data);
-              }}
-            >
-              Save
-            </Button>
           </Grid>
         </Grid>
       </Box>
@@ -163,7 +163,7 @@ const createLink = async (
       },
     }
   );
-  
+
   return data;
 };
 
